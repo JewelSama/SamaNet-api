@@ -6,6 +6,98 @@ generator client {
 }
 
 datasource db {
-  provider = "postgresql"
+  provider = "sqlite"
   url      = env("DATABASE_URL")
 }
+
+model User {
+  id Int @id @default(autoincrement()) 
+  username String @unique
+  email String @unique
+  firstname String
+  lastname String
+  password String
+  subscribed Boolean @default(false)
+  profile_views Int @default(0)
+  phone_number String?
+  display_phone_num Boolean @default(false)
+
+  tokens Token[]
+
+  posts Post[]
+  savedposts Savedpost[]
+  likes Like[]
+  comments Comment[]
+
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Post {
+  id Int @id @default(autoincrement())
+
+  likes Like[]
+  comments Comment[]
+  savedposts Savedpost[]
+
+  userId Int
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Comment {
+  id Int @id @default(autoincrement())
+  userId Int
+  postId Int
+  likes Like[]
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  post Post @relation(fields: [postId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Savedpost {
+  id Int @id @default(autoincrement())
+
+  userId Int 
+  postId Int
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  post Post @relation(fields: [postId], references: [id], onDelete: Cascade)
+}
+
+model Like {
+  id Int @id @default(autoincrement())
+  userId Int
+  postId Int
+  commentId Int 
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  post Post @relation(fields: [postId], references: [id], onDelete: Cascade)
+  comment Comment @relation(fields: [commentId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Token {
+  id Int @id @default(autoincrement())
+  type String //Email or AuthToken
+  emailToken String? @unique
+  authToken String?
+
+  valid Boolean @default(true)
+  expiration DateTime
+
+  userId Int
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
