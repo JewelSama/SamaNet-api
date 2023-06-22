@@ -24,8 +24,9 @@ const router = Router()
 const prisma = new PrismaClient()
 
 
-const JWT_SECRET = process.env.JWT_SECRET || "JWT SECRET"
+const JWT_SECRET = process.env.JWT_SECRET || "JWT SECRET";
 
+const EMAIL_TOKEN_EXPIRATION_TIME = 10;
 
 
 
@@ -54,8 +55,25 @@ router.post('/register', async(req, res) => {
     }
 
     const encryptedPassword = await bcrypt.hash(password, 10)
+
+    // Generate a random 8 digit number as the email token
+function generateToken(): string {
+    return Math.floor(100000 + Math.random() * 900000).toString();
+}
+
     // console.log(encryptedPassword) 
   /*  try {
+       
+    } catch (error) {
+        console.log(error)
+    } */
+
+    const emailToken = generateToken()
+
+    const expiration = new Date(new Date().getTime() + EMAIL_TOKEN_EXPIRATION_TIME * 60 * 1000) // *60---to secs *1000 --milliseconds
+
+    try {
+
         const newUser = await prisma.user.create({
             data: {
                 username,
@@ -65,14 +83,38 @@ router.post('/register', async(req, res) => {
                 password: encryptedPassword
             }
         }) 
-        console.log(JWT_SECRET)
-        res.status(201).json(newUser)
-    } catch (error) {
-        console.log(error)
-    } */
+        // console.log(JWT_SECRET)
 
 
-    try {
+
+
+
+
+    const createdEmailToken = await prisma.token.create({
+        data: {
+            type: "Email",
+            emailToken,
+            valid: true,
+            expiration,
+            user: {
+                connect: {
+                    email
+                }
+            }
+        }
+    }) 
+    console.log(expiration)
+    console.log(createdEmailToken)
+
+
+
+
+
+
+
+
+
+
         smtpMailData.sender = sender;
 
        smtpMailData.to = [{
@@ -80,17 +122,17 @@ router.post('/register', async(req, res) => {
             name: firstname
         }];
 
-       smtpMailData.subject = 'You are on the samaNet!';
+       smtpMailData.subject = 'SamaNet email verification code';
 
        smtpMailData.params = {
             'name': firstname,
-            'twitter': '@samanet'
+            'token': emailToken
         };
 
        smtpMailData.htmlContent = "<html><body><p>Hello {{ params.name }}, "
                  + "welcome to SamaNet. We'll notify you "
-                  + "when we launch. Kindly follow us on Twitter "
-                 + "{{ params.twitter }}. arigato!</p></body></html>";
+                  + "Your email verification code is {{ params.token }}."
+                 + " arigato!</p></body></html>";
 
         // send email
         await transactionEmailApi.sendTransacEmail(smtpMailData)
@@ -103,6 +145,10 @@ router.post('/register', async(req, res) => {
                 console.error(error)
                 throw new Error(error) // handle errors
             })
+    // res.sendStatus(200)
+    res.status(201).json(newUser)
+
+
     } catch (error) {
         console.log('An error occured...')
         console.error(error)
@@ -120,7 +166,21 @@ router.post('/register', async(req, res) => {
 
 })
 
+//Delete User
 
+router.delete('/:id', async (req, res) => {
+    const { id } = req.params;
+
+   try {
+    await prisma.user.delete({
+        where: {id: Number(id)}
+    })
+    res.sendStatus(200);
+   } catch (error) {
+    console.log(error)
+    res.status(401).json({ error: "User could not be deleted!" })
+   }
+})
 
 
 
