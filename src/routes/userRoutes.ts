@@ -37,8 +37,8 @@ const AUTHENTICATION_EXPIRATION_HOURS = 720; //720hrs i.e 30days
 
     // Gen jwt token
 
-    function generateAuthToken(tokenId: number): string {
-        const jwtpayload = { tokenId };
+    function generateAuthToken(email: string): string {
+        const jwtpayload = { email };
 
         return jwt.sign(jwtpayload, JWT_SECRET, {
             algorithm: 'HS256',
@@ -109,9 +109,8 @@ function generateToken(): string {
 
 
 
-    const createdEmailToken = await prisma.token.create({
+    const createdEmailToken = await prisma.s_EmailToken.create({
         data: {
-            type: "Email",
             emailToken,
             valid: true,
             expiration,
@@ -182,12 +181,12 @@ router.post('/authenticate', async (req, res) => {
     const { email, emailToken } = req.body;
 
     try {
-        const dbEmailToken = await prisma.token.findUnique({
+        const dbEmailToken = await prisma.s_EmailToken.findUnique({
             where: {emailToken},
             include: {user: true}  
         })
     
-        console.log(dbEmailToken)
+        // console.log(dbEmailToken)
 
         if(!dbEmailToken || !dbEmailToken.valid){
             return res.sendStatus(401); //unauthenticated
@@ -219,16 +218,18 @@ router.post('/authenticate', async (req, res) => {
 
         // generate  AuthToken 
         const authTokenExpiration = new Date( new Date().getTime() + AUTHENTICATION_EXPIRATION_HOURS * 60 * 60 * 1000  ) //to milliseconds
-        const authToken = generateAuthToken(dbEmailToken?.id)
+        const authToken = generateAuthToken(email)
 
 
-        const token = await prisma.token.update({
-            where: {id: dbEmailToken?.id},
+        const token = await prisma.s_AuthToken.create({
             data: {
-                type: "AuthToken",
                 authToken: authToken,
-                authExpiration: authTokenExpiration,
-                valid: false
+                expiration: authTokenExpiration,
+                user: {
+                    connect: {
+                        email
+                    }
+                }
             }
         }) 
 
@@ -253,7 +254,7 @@ router.put('/authenticate/resend/:id', async(req, res) => {
     const { id  } = req.params;
 
     try {
-        const newToken = await prisma.token.update({
+        const newToken = await prisma.s_EmailToken.update({
             where: {id: Number(id)},
             data: {
                 emailToken,
@@ -305,7 +306,37 @@ router.put('/authenticate/resend/:id', async(req, res) => {
     }
 })
 
+//Login User
+router.post('/login', async(req, res) => {
+    const { email, password } = req.body;
+    if(!email || !password){
+        return res.status(400).json({ error: "All inputs are required" })
+    }
+    const user = await prisma.user.findUnique({
+        where: {email},
+        include: {authTokens: true}
+    })
+    const authToken = generateAuthToken(email)
+    const authTokenExpiration = new Date( new Date().getTime() + AUTHENTICATION_EXPIRATION_HOURS * 60 * 60 * 1000  ) //to milliseconds
+    if(user && (await bcrypt.compare(password, user.password))){
+        const token = await prisma.s_AuthToken.create({
+            data: {
+                authToken,
+                expiration: authTokenExpiration,
+                user: {
+                    connect: {
+                        email
+                    }
+                }
+            }
+        })
+        res.status(200).json(user)
+        console.log(user)
+    } else {
+        res.status(400).json({error: "Invalid login details"})
+    }
 
+})
 
 
 

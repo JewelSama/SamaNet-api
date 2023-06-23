@@ -23,8 +23,8 @@ model User {
   phone_number String?
   display_phone_num Boolean @default(false)
 
-  tokens Token[]
-
+  tokens S_EmailToken[]
+  authTokens S_AuthToken[]
   posts Post[]
   savedposts Savedpost[]
   likes Like[]
@@ -86,17 +86,25 @@ model Like {
   updatedAt DateTime @updatedAt
 }
 
-model Token {
+model S_EmailToken {
   id Int @id @default(autoincrement())
-  type String //Email or AuthToken
-  emailToken String? @unique
-  authToken String?
-
+  type String @default("EmailToken")
+  emailToken String @unique
   valid Boolean @default(true)
-  authTokenValid Boolean @default(true)
+  expiration DateTime
+   
+  userId Int
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
-  expiration DateTime?
-  authExpiration DateTime? 
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+model S_AuthToken {
+  id Int @id @default(autoincrement())
+  type String @default("AuthToken")
+  authToken String 
+  valid Boolean @default(true)
+  expiration DateTime
 
   userId Int
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
