@@ -27,6 +27,7 @@ const prisma = new PrismaClient()
 const JWT_SECRET = process.env.JWT_SECRET || "JWT SECRET";
 
 const EMAIL_TOKEN_EXPIRATION_TIME = 10;
+const AUTHENTICATION_EXPIRATION_HOURS = 720; //720hrs i.e 30days
 
 
 
@@ -103,16 +104,8 @@ function generateToken(): string {
             }
         }
     }) 
-    console.log(expiration)
-    console.log(createdEmailToken)
-
-
-
-
-
-
-
-
+    // console.log(expiration)
+    // console.log(createdEmailToken)
 
 
         smtpMailData.sender = sender;
@@ -165,6 +158,138 @@ function generateToken(): string {
 
 
 })
+
+//Validate EmailToken and then create AuthToken 
+router.post('/authenticate', async (req, res) => {
+    const { email, emailToken } = req.body;
+
+    try {
+        const dbEmailToken = await prisma.token.findUnique({
+            where: {emailToken},
+            include: {user: true}  
+        })
+    
+        console.log(dbEmailToken)
+
+        if(!dbEmailToken || !dbEmailToken.valid){
+            return res.sendStatus(401); //unauthenticated
+        }
+
+        if(dbEmailToken.expiration < new Date()){
+            return res.status(401).json({ error: "Token expired!" })
+            //maybe delete the record associated with the email
+        }
+
+        if(dbEmailToken?.user?.email !== email){
+
+            return res.status(401);
+        }
+
+        // make user verified
+
+        await prisma.user.update({
+            where: {
+                email: dbEmailToken?.user.email
+            },
+            data: {
+                isVerified: true
+            }
+        })
+
+        // generate  AuthToken 
+        const authTokenExpiration = new Date( new Date().getTime() + AUTHENTICATION_EXPIRATION_HOURS * 60 * 60 * 1000  ) //to milliseconds
+
+        /*const authToken = await prisma.token.create({
+            data: {
+                type: "AuthToken",
+                
+            }
+        }) */
+
+
+        res.status(200).json(dbEmailToken)
+    } catch (error) {
+        console.log(error)
+        process.exit(1)
+    }
+})
+
+//resend emailToken and send to users email
+
+router.put('/authenticate/resend/:id', async(req, res) => {
+    function generateToken(): string {
+        return Math.floor(100000 + Math.random() * 900000).toString();
+    }
+    const emailToken = generateToken()
+    console.log(emailToken)
+    const expiration = new Date(new Date().getTime() + EMAIL_TOKEN_EXPIRATION_TIME * 60 * 1000) // *60---to secs *1000 --milliseconds
+
+    const { id  } = req.params;
+
+    try {
+        const newToken = await prisma.token.update({
+            where: {id: Number(id)},
+            data: {
+                emailToken,
+                expiration
+            },
+            include: {user: true}
+        })
+
+        // console.log(newToken?.user?.email)
+
+
+        smtpMailData.sender = sender;
+
+       smtpMailData.to = [{
+            email: newToken?.user?.email,
+            name: newToken?.user?.firstname
+        }];
+
+       smtpMailData.subject = 'SamaNet email verification code';
+
+       smtpMailData.params = {
+            'name': newToken?.user?.firstname,
+            'token': newToken?.emailToken
+        };
+
+       smtpMailData.htmlContent = "<html><body><p>Hello {{ params.name }}, "
+                 + "welcome to SamaNet. We'll notify you "
+                  + "Your new email verification code is {{ params.token }}."
+                 + " arigato!</p></body></html>";
+
+        // send email
+        await transactionEmailApi.sendTransacEmail(smtpMailData)
+        // @ts-ignore
+            .then((data) => { 
+                console.log(data) // log the email id
+            })
+            // @ts-ignore
+            .catch((error) => {
+                console.error(error)
+                throw new Error(error) // handle errors
+            })
+
+        res.status(200).json(newToken)
+        
+    } catch (error) {
+        console.log(error)
+        res.status(400).json({ error: "Email could not be sent" })
+        process.exit(1)
+    }
+})
+
+
+
+
+
+
+
+
+
+
+
+
 
 //Delete User
 
