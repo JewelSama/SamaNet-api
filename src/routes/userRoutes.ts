@@ -5,6 +5,11 @@ import { createTransport } from "nodemailer";
 import { getImpliedNodeFormatForFile } from "typescript";
 // @ts-ignore
 import SibApi from "sib-api-v3-sdk"
+import jwt from "jsonwebtoken"
+
+
+
+
 
 const SibClient = SibApi.ApiClient.instance;
 
@@ -28,6 +33,18 @@ const JWT_SECRET = process.env.JWT_SECRET || "JWT SECRET";
 
 const EMAIL_TOKEN_EXPIRATION_TIME = 10;
 const AUTHENTICATION_EXPIRATION_HOURS = 720; //720hrs i.e 30days
+
+
+    // Gen jwt token
+
+    function generateAuthToken(tokenId: number): string {
+        const jwtpayload = { tokenId };
+
+        return jwt.sign(jwtpayload, JWT_SECRET, {
+            algorithm: 'HS256',
+            noTimestamp: true,
+        })
+    }
 
 
 
