@@ -175,9 +175,12 @@ router.post('/authenticate', async (req, res) => {
             return res.sendStatus(401); //unauthenticated
         }
 
-        if(dbEmailToken.expiration < new Date()){
-            return res.status(401).json({ error: "Token expired!" })
-            //maybe delete the record associated with the email
+        if(dbEmailToken?.expiration){
+            if(dbEmailToken?.expiration < new Date()){
+                return res.status(401).json({ error: "Token expired!" })
+            }
+        } else {
+
         }
 
         if(dbEmailToken?.user?.email !== email){
@@ -199,12 +202,12 @@ router.post('/authenticate', async (req, res) => {
         // generate  AuthToken 
         const authTokenExpiration = new Date( new Date().getTime() + AUTHENTICATION_EXPIRATION_HOURS * 60 * 60 * 1000  ) //to milliseconds
 
-        /*const authToken = await prisma.token.create({
-            data: {
-                type: "AuthToken",
+        // const authToken = await prisma.token.create({
+        //     data: {
+        //         type: "AuthToken",
                 
-            }
-        }) */
+        //     }
+        // }) 
 
 
         res.status(200).json(dbEmailToken)

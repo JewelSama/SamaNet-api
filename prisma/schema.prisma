@@ -93,7 +93,10 @@ model Token {
   authToken String?
 
   valid Boolean @default(true)
-  expiration DateTime
+  authTokenValid Boolean @default(true)
+
+  expiration DateTime?
+  authExpiration DateTime? 
 
   userId Int
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
