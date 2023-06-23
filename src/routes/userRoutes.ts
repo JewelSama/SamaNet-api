@@ -338,6 +338,22 @@ router.post('/login', async(req, res) => {
 
 })
 
+// @Post Get single User
+router.get('/:id', async(req, res) => {
+    const { id } = req.params;
+
+    try {
+        const user = await prisma.user.findUnique({ 
+            where: {id: Number(id)},
+            include: {posts: true} 
+        })
+        
+        res.status(200).json(user)
+    } catch (error) {
+        res.sendStatus(404)
+    }
+})
+
 
 
 
