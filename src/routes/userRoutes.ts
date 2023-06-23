@@ -99,7 +99,8 @@ function generateToken(): string {
                 firstname,
                 lastname,
                 password: encryptedPassword
-            }
+            },
+            include: {tokens: true}
         }) 
         // console.log(JWT_SECRET)
 
@@ -218,16 +219,21 @@ router.post('/authenticate', async (req, res) => {
 
         // generate  AuthToken 
         const authTokenExpiration = new Date( new Date().getTime() + AUTHENTICATION_EXPIRATION_HOURS * 60 * 60 * 1000  ) //to milliseconds
-
-        // const authToken = await prisma.token.create({
-        //     data: {
-        //         type: "AuthToken",
-                
-        //     }
-        // }) 
+        const authToken = generateAuthToken(dbEmailToken?.id)
 
 
-        res.status(200).json(dbEmailToken)
+        const token = await prisma.token.update({
+            where: {id: dbEmailToken?.id},
+            data: {
+                type: "AuthToken",
+                authToken: authToken,
+                authExpiration: authTokenExpiration,
+                valid: false
+            }
+        }) 
+
+        console.log(token)
+        res.status(200).json(token)
     } catch (error) {
         console.log(error)
         process.exit(1)
