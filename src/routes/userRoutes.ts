@@ -1,8 +1,6 @@
 import { Router } from "express";
 import { PrismaClient } from "@prisma/client";
 import bcrypt from "bcryptjs"
-import { createTransport } from "nodemailer";
-import { getImpliedNodeFormatForFile } from "typescript";
 // @ts-ignore
 import SibApi from "sib-api-v3-sdk"
 import jwt from "jsonwebtoken"
@@ -37,12 +35,13 @@ const AUTHENTICATION_EXPIRATION_HOURS = 720; //720hrs i.e 30days
 
     // Gen jwt token
 
-    function generateAuthToken(email: string): string {
-        const jwtpayload = { email };
+    function generateAuthToken(id: number): string {
+        const jwtpayload = { id };
 
         return jwt.sign(jwtpayload, JWT_SECRET, {
             algorithm: 'HS256',
             noTimestamp: true,
+            expiresIn: '30d'
         })
     }
 
@@ -218,26 +217,36 @@ router.post('/authenticate', async (req, res) => {
 
         // generate  AuthToken 
         const authTokenExpiration = new Date( new Date().getTime() + AUTHENTICATION_EXPIRATION_HOURS * 60 * 60 * 1000  ) //to milliseconds
-        const authToken = generateAuthToken(email)
+        
+        
+        // const user = await prisma.user.update({
+        //     where: { email },
+        //     data: {
+        //         authToken: generateAuthToken(),
+        //         tokenExpiration: authTokenExpiration,
+        //     },
+        // }) 
+        // console.log(token)
 
+        const user = await prisma.user.findUnique({ where: {email} })
+        if(user){
+            const authToken = generateAuthToken(user.id)
+            const userWithToken = await prisma.user.update({
+                where: {id: user.id},
+                data: {
+                    authToken,
+                    tokenExpiration: authTokenExpiration
+                },
+            })
+            // console.log(user)
+            // console.log(userWithToken)
+            res.status(200).json(userWithToken)
 
-        const token = await prisma.s_AuthToken.create({
-            data: {
-                authToken: authToken,
-                expiration: authTokenExpiration,
-                user: {
-                    connect: {
-                        email
-                    }
-                }
-            }
-        }) 
+        }
 
-        console.log(token)
-        res.status(200).json(token)
     } catch (error) {
         console.log(error)
-        process.exit(1)
+        // process.exit(1)
     }
 })
 
@@ -314,25 +323,23 @@ router.post('/login', async(req, res) => {
     }
     const user = await prisma.user.findUnique({
         where: {email},
-        include: {authTokens: true}
     })
-    const authToken = generateAuthToken(email)
+    
     const authTokenExpiration = new Date( new Date().getTime() + AUTHENTICATION_EXPIRATION_HOURS * 60 * 60 * 1000  ) //to milliseconds
+
     if(user && (await bcrypt.compare(password, user.password))){
-        const token = await prisma.s_AuthToken.create({
+        const authToken = generateAuthToken(user.id)
+        const userWithNewToken = await prisma.user.update({
+            where: { id: user.id },
             data: {
                 authToken,
-                expiration: authTokenExpiration,
-                user: {
-                    connect: {
-                        email
-                    }
-                }
-            }
+                tokenExpiration: authTokenExpiration,
+            },
         })
-        res.status(200).json(user)
-        console.log(user)
-    } else {
+        res.status(200).json(userWithNewToken)
+        console.log(userWithNewToken)
+    } 
+    else {
         res.status(400).json({error: "Invalid login details"})
     }
 
