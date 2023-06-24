@@ -355,9 +355,13 @@ router.get('/:id', async(req, res) => {
             include: {posts: true} 
         })
         
-        res.status(200).json(user)
+        if(user){
+            res.status(200).json(user)
+        } else {
+            res.status(404).json({ error: "User not found!" })
+        }
     } catch (error) {
-        res.sendStatus(404)
+        console.log(error)
     }
 })
 
