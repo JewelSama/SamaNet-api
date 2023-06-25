@@ -138,10 +138,9 @@ function generateToken(): string {
             'token': emailToken
         };
 
-       smtpMailData.htmlContent = "<html><body><p>Hello {{ params.name }}, "
-                 + "welcome to SamaNet. We'll notify you "
-                  + "Your email verification code is {{ params.token }}."
-                 + " arigato!</p></body></html>";
+       smtpMailData.htmlContent = "<html><body><p>Hi {{ params.name }}, "
+                  + "Your email verification code is {{ params.token }}. "
+                 + "arigato!</p></body></html>";
 
         // send email
         await transactionEmailApi.sendTransacEmail(smtpMailData)
@@ -155,7 +154,7 @@ function generateToken(): string {
                 throw new Error(error) // handle errors
             })
     // res.sendStatus(200)
-    res.status(201).json(newUser)
+    res.status(201).json(createdEmailToken)
 
 
     } catch (error) {
@@ -201,7 +200,7 @@ router.post('/authenticate', async (req, res) => {
 
         if(dbEmailToken?.user?.email !== email){
 
-            return res.status(401);
+            return res.sendStatus(401);
         }
 
         // make user verified
