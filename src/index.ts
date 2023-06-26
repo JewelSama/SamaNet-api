@@ -5,9 +5,10 @@ import postRoutes from "./routes/postRoutes"
 import { authenticateToken } from "./middlewares/authMiddleware"
 
 
+
 dotenv.config()
 const app = express()
-
+app.use(express.static('../public'))
 
 app.use(express.urlencoded({ extended: true }))
 app.use(express.json())

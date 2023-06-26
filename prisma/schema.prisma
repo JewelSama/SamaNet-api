@@ -28,7 +28,7 @@ model User {
   tokens S_EmailToken[]
   posts Post[]
   savedposts Savedpost[]
-  likes Like[]
+  likes Like?
   comments Comment[]
 
 
@@ -39,9 +39,12 @@ model User {
 model Post {
   id Int @id @default(autoincrement())
 
-  likes Like[]
-  comments Comment[]
-  savedposts Savedpost[]
+  caption String?
+
+  likes Like?
+  comments Comment?
+  savedposts Savedpost?
+  img_path String?
 
   userId Int
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
@@ -53,8 +56,8 @@ model Post {
 model Comment {
   id Int @id @default(autoincrement())
   userId Int
-  postId Int
-  likes Like[]
+  postId Int @unique
+  // likes Like?
 
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
   post Post @relation(fields: [postId], references: [id], onDelete: Cascade)
@@ -67,7 +70,7 @@ model Savedpost {
   id Int @id @default(autoincrement())
 
   userId Int 
-  postId Int
+  postId Int @unique
 
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
   post Post @relation(fields: [postId], references: [id], onDelete: Cascade)
@@ -75,13 +78,13 @@ model Savedpost {
 
 model Like {
   id Int @id @default(autoincrement())
-  userId Int
-  postId Int
-  commentId Int 
+  userId Int @unique
+  postId Int @unique
+  // commentId Int @unique
 
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
   post Post @relation(fields: [postId], references: [id], onDelete: Cascade)
-  comment Comment @relation(fields: [commentId], references: [id], onDelete: Cascade)
+  // comment Comment @relation(fields: [commentId], references: [id], onDelete: Cascade)
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -100,5 +103,6 @@ model S_EmailToken {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 }
+
 
 

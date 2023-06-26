@@ -17,7 +17,7 @@ export async function authenticateToken(req: AuthRequest, res: Response, next: N
 
     // split Bearer from the full token to get only token
     const jwtToken = authHeader?.split(" ")[1];
-    console.log(jwtToken)
+    // console.log(jwtToken)
 
     if(!jwtToken){
         return res.sendStatus(401)
@@ -31,13 +31,13 @@ export async function authenticateToken(req: AuthRequest, res: Response, next: N
             id: number,
             // email: string
         };
-        console.log(payload)
+        // console.log(payload)
 
         const dbToken = await prisma.user.findUnique({
             where: {id: payload.id},
             // include: {authTokens: true}
         })
-        console.log(dbToken)
+        // console.log(dbToken)
         if(!dbToken){
             return res.status(401).json({ error: "Auth token is not valid" })
         }
@@ -48,9 +48,9 @@ export async function authenticateToken(req: AuthRequest, res: Response, next: N
             }
         }
 
-        // console.log(dbToken.user)
+        // console.log(dbToken)
 
-        // req.user = dbToken.user;
+        req.user = dbToken;
 
     } catch (error) {
         console.log(error)
