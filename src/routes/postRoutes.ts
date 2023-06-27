@@ -68,29 +68,36 @@ router.post('/', async(req, res) => {
 })
 
 // @PUT Edit post
-// router.put('/:id', async (req, res) => {
-//     const { id } = req.params;
-//     const { caption } = req.body
+router.put('/:id', async (req, res) => {
+    const { id } = req.params;
 
 
-//     upload(req, res, async(err)  => {
-//         if(err){
-//             console.log(err)
-//            return res.sendStatus(400)
-//         } else {
-//              const samaImg = req.file
+    upload(req, res, async(err)  => {
+        if(err){
+            console.log(err)
+           return res.sendStatus(400)
+        } else {
+             const samaImg = req.file
+             const  caption = req.body.caption;
 
-//         const post = await prisma.post.update({
-//             where: {id: Number(id)},
-//             data: {
-//                 caption
-//             }
-//         })
-//         if(!post){
-//             res.status(404).json({ error: "Post does not exist" })
-//         }
-//     }})
+             if(!caption && !samaImg){
+                return res.status(400).json({ error: "Fill in fields" })
+            }
 
-// }) 
+        const post = await prisma.post.update({
+            where: {id: Number(id)},
+            data: {
+                caption,
+                img_path: samaImg?.path
+            }
+        })
+        if(!post){
+            res.status(404).json({ error: "Post does not exist" })
+        }
+
+        res.status(200).json(post)
+    }})
+
+}) 
 
 export default router;
