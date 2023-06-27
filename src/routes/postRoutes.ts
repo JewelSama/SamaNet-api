@@ -24,7 +24,7 @@ const upload =  multer({
 
 //create Post
 router.post('/', async(req, res) => {
-    const { caption } = req.body
+    // const { caption } = req.body
     // let samaImg = {};
     upload(req, res, async(err)  => {
         if(err){
@@ -33,9 +33,9 @@ router.post('/', async(req, res) => {
         } else {
      
              const samaImg = req.file
+             const caption = req.body.caption; 
+            // console.log("jewwwllllll")
             // console.log(samaImg)
-            console.log("jewwwllllll")
-            console.log(samaImg)
             
             
             if(!caption && !samaImg){
@@ -67,6 +67,30 @@ router.post('/', async(req, res) => {
 })
 })
 
+// @PUT Edit post
+// router.put('/:id', async (req, res) => {
+//     const { id } = req.params;
+//     const { caption } = req.body
 
+
+//     upload(req, res, async(err)  => {
+//         if(err){
+//             console.log(err)
+//            return res.sendStatus(400)
+//         } else {
+//              const samaImg = req.file
+
+//         const post = await prisma.post.update({
+//             where: {id: Number(id)},
+//             data: {
+//                 caption
+//             }
+//         })
+//         if(!post){
+//             res.status(404).json({ error: "Post does not exist" })
+//         }
+//     }})
+
+// }) 
 
 export default router;
