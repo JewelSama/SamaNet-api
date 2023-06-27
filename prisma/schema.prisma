@@ -42,7 +42,7 @@ model Post {
   caption String?
 
   likes Like?
-  comments Comment?
+  comments Comment[]
   savedposts Savedpost?
   img_path String?
 
@@ -56,7 +56,9 @@ model Post {
 model Comment {
   id Int @id @default(autoincrement())
   userId Int
-  postId Int @unique
+  postId Int 
+  caption String
+
   // likes Like?
 
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)

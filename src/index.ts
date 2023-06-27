@@ -1,8 +1,9 @@
 import express from "express"
 import dotenv from "dotenv"
+import { authenticateToken } from "./middlewares/authMiddleware"
 import userRoutes from "./routes/userRoutes"
 import postRoutes from "./routes/postRoutes"
-import { authenticateToken } from "./middlewares/authMiddleware"
+import commentRoutes from "./routes/commentRoutes"
 
 
 
@@ -18,6 +19,7 @@ const port = process.env.Port
 
 app.use('/user', userRoutes);
 app.use('/post', authenticateToken, postRoutes);
+app.use('/post/comment', authenticateToken, commentRoutes);
 
 app.get('/', (req, res) => {
     res.send('Welcome to SamaNet');
