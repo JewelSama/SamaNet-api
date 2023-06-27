@@ -57,9 +57,9 @@ router.delete('/:id', async(req, res) => {
             if(comment.userId !== user.id){
                 return res.status(400).json({ error: "You can't delete this comment!" })
             } else {
-                // await prisma.comment.delete({
-                //     where: { id: Number(id) }
-                // })
+                await prisma.comment.delete({
+                    where: { id: Number(id) }
+                })
                 res.sendStatus(200)
             }
 
