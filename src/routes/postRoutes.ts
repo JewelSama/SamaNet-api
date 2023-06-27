@@ -100,4 +100,23 @@ router.put('/:id', async (req, res) => {
 
 }) 
 
+// @DELETE @Private delete Posts
+
+router.delete('/:id', async(req, res) => {
+    const { id } = req.params;
+    try {
+        await prisma.post.delete({
+            where: {id: Number(id)}
+        })
+        res.sendStatus(200)
+    } catch (error) {
+        res.status(404).json({ error: "Post does not exist" })
+    }
+})
+
+
+
+
+
+
 export default router;
