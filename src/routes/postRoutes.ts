@@ -115,6 +115,80 @@ router.delete('/:id', async(req, res) => {
 })
 
 
+router.post('/like/:id', async(req, res) => {
+    const { id } = req.params;
+    //@ts-ignore
+    const user = req.user
+
+    const post = await prisma.post.findUnique({ where: {id: Number(id)}, include: {likes: true} })
+    // @ts-ignore 
+    const likes = await prisma.like.findMany({ where: { postId: post?.id }, select: {userId: true} })
+
+    // console.log(likes)
+    const userLikes = likes.map((like) => like.userId)
+
+    const hasLikes = userLikes.includes(user.id)
+    // console.log(hasLikes)
+
+    
+    if(post){
+        try {
+            if(hasLikes){
+                return res.sendStatus(400)
+            }
+            const likedPost = await prisma.like.create({
+                data: {
+                    userId: user.id,
+                    postId: post?.id,
+                }, 
+                include: { user: {
+                    select: {
+                        id: true,
+                        firstname: true,
+                        lastname: true,
+                        display_pic: true,
+                    }
+                } }
+            })
+
+            res.status(201).json(likedPost)
+    
+        } catch (error) {
+            console.log(error)
+            res.sendStatus(400)
+        }
+
+    }
+
+})
+//@DELETE unlike posts
+// sending like id
+
+router.delete('/like/:id', async(req, res) => {
+    const { id } = req.params;
+    // @ts-ignore  
+    const user = req.user;
+
+    try {
+        const like = await prisma.like.findUnique({ where: {id: Number(id)} })
+
+        if(like){
+            if(like.userId !== user.id){
+                return res.sendStatus(400)
+            } else {
+                await prisma.like.delete({ where: { id: Number(id) } })
+                return res.sendStatus(200)
+            }
+        } else {
+            return res.sendStatus(404)
+        }
+
+
+    } catch (error) {
+        console.log(error)
+        res.sendStatus(400)
+    }
+})
 
 
 
