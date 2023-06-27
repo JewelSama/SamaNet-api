@@ -19,6 +19,7 @@ model User {
   lastname String
   password String
   subscribed Boolean @default(false)
+  display_pic String @default("public\\uploads\\avatar3.jpg")
   profile_views Int @default(0)
   phone_number String?
   display_phone_num Boolean @default(false)
@@ -28,7 +29,7 @@ model User {
   tokens S_EmailToken[]
   posts Post[]
   savedposts Savedpost[]
-  likes Like?
+  likes Like[]
   comments Comment[]
 
 
@@ -41,7 +42,7 @@ model Post {
 
   caption String?
 
-  likes Like?
+  likes Like[]
   comments Comment[]
   savedposts Savedpost?
   img_path String?
@@ -80,8 +81,8 @@ model Savedpost {
 
 model Like {
   id Int @id @default(autoincrement())
-  userId Int @unique
-  postId Int @unique
+  userId Int 
+  postId Int 
   // commentId Int @unique
 
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
