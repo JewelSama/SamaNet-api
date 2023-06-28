@@ -232,7 +232,7 @@ router.post('/save/:id', async(req, res) => {
 //@DELETE removed posts from saved
 
 router.delete('/save/:id', async(req, res) => {
-    const { id } = req.params;
+    const { id } = req.params; //SavePost id
     //@ts-ignore
     const user = req.user;
 
