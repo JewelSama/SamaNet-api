@@ -251,6 +251,22 @@ router.delete('/save/:id', async(req, res) => {
     }
 })
 
+//@GET users saved posts
+
+router.get('/save', async(req, res) => {
+    // const { id } = req.params; //user id
+    // @ts-ignore
+    const authUser = req?.user?.id;
+    try {
+        const userSavedPost = await prisma.savedpost.findMany({ where: { userId: authUser }, include: { post: true } })
+        res.status(200).json(userSavedPost)
+    } catch (error) {
+    console.log(error)
+    res.status(400).json({ error: "Something went wrong" })        
+    }
+    
+})
+
 
 
 
