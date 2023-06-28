@@ -56,13 +56,34 @@ router.put('/update', async(req, res) => {
 
     }})
 
-
-
-
-
 })
 
 
+//@PUT Update profile
+
+router.put('/update/details', async(req, res) => {
+    const { username, email, firstname, lastname, display_phone_num, phone_number,  } = req.body
+    //@ts-ignore
+    const user = req.user;
+    
+    try {
+        const updatedUser = await prisma.user.update({
+            where: { id: user.id },
+            data: {
+                username: username  ,
+                email: email?.toLowerCase(),
+                firstname,
+                lastname,
+                phone_number,
+                display_phone_num
+            }
+        })
+        res.status(200).json(updatedUser)
+    } catch (error) {
+        console.log(error)
+        return res.status(400).json({ error: "Something went wrong" })
+    }
+})
 
 
 
