@@ -191,6 +191,45 @@ router.delete('/like/:id', async(req, res) => {
 })
 
 
+//@POST Save Post
+
+router.post('/save/:id', async(req, res) => {
+    const { id } = req.params;
+    //@ts-ignore
+    const user = req.user;
+    // console.log(user)
+
+    const post = await prisma.post.findUnique({ where: { id: Number(id) }, include: { savedposts: true } })
+    if(!post){
+        return res.sendStatus(404)
+    }
+    console.log(post)
+    const savedPostss = post.savedposts;
+    const saved = savedPostss.map((save) => save.userId)
+
+    const alreadySaved = saved.includes(user.id)
+    // console.log(alreadySaved)
+    try {
+        if(alreadySaved){
+            return res.status(400).json({ error: "Post already Saved" })
+        }
+        const newSavedPost = await prisma.savedpost.create({
+            data: {
+                userId: user.id,
+                postId: post.id,
+            },
+            include: {post: true}
+        })
+        console.log(newSavedPost)
+        res.status(200).json(newSavedPost)
+    } catch (error) {
+        console.log(error)
+       return  res.status(400).json({ errror: "Something happened" })
+    }
+
+})
+
+
 
 
 export default router;
