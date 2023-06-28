@@ -110,7 +110,7 @@ router.delete('/:id', async(req, res) => {
         })
         res.sendStatus(200)
     } catch (error) {
-        res.status(404).json({ error: "Post does not exist" })
+        return res.status(404).json({ error: "Post does not exist" })
     }
 })
 
@@ -155,7 +155,7 @@ router.post('/like/:id', async(req, res) => {
     
         } catch (error) {
             console.log(error)
-            res.sendStatus(400)
+            return res.sendStatus(400)
         }
 
     }
@@ -247,7 +247,7 @@ router.delete('/save/:id', async(req, res) => {
         res.sendStatus(200)
     } catch (error) {
         console.log(error)
-        res.status(400).json({ error: "Something went wrong!" })
+        return res.status(400).json({ error: "Something went wrong!" })
     }
 })
 
@@ -262,7 +262,7 @@ router.get('/save', async(req, res) => {
         res.status(200).json(userSavedPost)
     } catch (error) {
     console.log(error)
-    res.status(400).json({ error: "Something went wrong" })        
+        return res.status(400).json({ error: "Something went wrong" })        
     }
     
 })
