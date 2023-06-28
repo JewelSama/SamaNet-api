@@ -203,7 +203,7 @@ router.post('/save/:id', async(req, res) => {
     if(!post){
         return res.sendStatus(404)
     }
-    console.log(post)
+    // console.log(post)
     const savedPostss = post.savedposts;
     const saved = savedPostss.map((save) => save.userId)
 
@@ -220,13 +220,35 @@ router.post('/save/:id', async(req, res) => {
             },
             include: {post: true}
         })
-        console.log(newSavedPost)
+        // console.log(newSavedPost)
         res.status(200).json(newSavedPost)
     } catch (error) {
         console.log(error)
        return  res.status(400).json({ errror: "Something happened" })
     }
 
+})
+
+//@DELETE removed posts from saved
+
+router.delete('/save/:id', async(req, res) => {
+    const { id } = req.params;
+    //@ts-ignore
+    const user = req.user;
+
+    try {
+        const savedPost = await prisma.savedpost.findUnique({ where: { id: Number(id) } })
+        // console.log(savedPost?.userId, user.id)
+        if(savedPost?.userId !== user.id){
+            return res.status(200).json({ error: "Something went wrong" })
+        }
+
+        await prisma.savedpost.delete({ where: { id: Number(id) } })
+        res.sendStatus(200)
+    } catch (error) {
+        console.log(error)
+        res.status(400).json({ error: "Something went wrong!" })
+    }
 })
 
 
