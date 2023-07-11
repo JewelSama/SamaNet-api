@@ -344,7 +344,7 @@ router.post('/login', async(req, res) => {
 
 })
 
-// @Post Get single User
+// @GET Get single User
 router.get('/:id', async(req, res) => {
     const { id } = req.params;
 
@@ -365,7 +365,24 @@ router.get('/:id', async(req, res) => {
 })
 
 
+//@GET GET user/users by [name]
 
+router.get('/', async (req, res) => {
+    const { name } = req.query
+    try {
+        const foundUsers = await prisma.user.findMany({
+            where: {
+                OR: [{ username: { contains: String(name) }}, { firstname: {contains: String(name)} }]
+            }
+        })
+
+        console.log(foundUsers)
+        res.status(200).json(foundUsers)
+    } catch (error) {
+        console.log(error)
+        return res.status(400).json({ error: "Something went wrong" })
+    }
+})
 
 
 
