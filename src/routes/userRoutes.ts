@@ -373,11 +373,20 @@ router.get('/', async (req, res) => {
         const foundUsers = await prisma.user.findMany({
             where: {
                 OR: [{ username: { contains: String(name) }}, { firstname: {contains: String(name)} }]
+            },
+            select: {
+                id: true,
+                username: true,
+                display_pic: true
             }
         })
+        if(!foundUsers){
+            return res.sendStatus(404);
+        } else {
+            console.log(foundUsers)
+            return res.status(200).json(foundUsers)
+        }
 
-        console.log(foundUsers)
-        res.status(200).json(foundUsers)
     } catch (error) {
         console.log(error)
         return res.status(400).json({ error: "Something went wrong" })
