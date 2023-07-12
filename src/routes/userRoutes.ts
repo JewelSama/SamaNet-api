@@ -60,11 +60,15 @@ router.post('/register', async(req, res) => {
     }
     // console.log(req.body)
     const attemptedUser = await prisma.user.findUnique({ where: { email: email } })  
+    const attemptedUserId = attemptedUser?.id
     
     const invalidUsername = await prisma.user.findUnique({ where: { username: username  }}) 
 
-    if(attemptedUser){
-        return res.status(409).json({ error: "User Already Exist. Please Login" })
+    if(attemptedUser?.isVerified === true){
+        return res.status(409).json({ error: "User Already Exist.. Please Login" })
+    }
+    if(attemptedUser && (attemptedUser?.isVerified === false)){
+        return res.status(200).json({ validate: "Account already created.. Please verify email Token", attemptedUserId})
     }
 
     if(invalidUsername){
@@ -117,6 +121,11 @@ function generateToken(): string {
                 connect: {
                     email
                 }
+            }
+        },
+        include: {
+            user: {
+                select: {email: true, id: true}
             }
         }
     }) 
@@ -251,19 +260,29 @@ router.post('/authenticate', async (req, res) => {
 
 //resend emailToken and send to users email
 
-router.put('/authenticate/resend/:id', async(req, res) => {
+// router.put('/authenticate/resend/:id', async(req, res) => {
+router.put('/authenticate/resend', async(req, res) => { //Take email only
     function generateToken(): string {
         return Math.floor(100000 + Math.random() * 900000).toString();
     }
     const emailToken = generateToken()
-    console.log(emailToken)
+    // console.log(emailToken)
     const expiration = new Date(new Date().getTime() + EMAIL_TOKEN_EXPIRATION_TIME * 60 * 1000) // *60---to secs *1000 --milliseconds
 
-    const { id  } = req.params;
+    // const { id  } = req.params;
+    const {email} = req.body
+
+    const Reuser = await prisma.user.findUnique({
+        where: {email: email}, 
+        include: {tokens: true}
+    })
+
+    const TokenId = Reuser?.tokens[0].id 
+    // console.log(TokenId)
 
     try {
         const newToken = await prisma.s_EmailToken.update({
-            where: {id: Number(id)},
+            where: {id: Number(TokenId)},
             data: {
                 emailToken,
                 expiration
