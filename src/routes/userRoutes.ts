@@ -56,7 +56,7 @@ router.post('/register', async(req, res) => {
     const { username, email, firstname, lastname, password } = req.body
 
     if(!(username && email && firstname && lastname && password)){
-        return res.status(400).json({ error: "All inputes are required" })
+        return res.status(400).json({ error: "All inputs are required" })
     }
     // console.log(req.body)
     const attemptedUser = await prisma.user.findUnique({ where: { email: email } })  
