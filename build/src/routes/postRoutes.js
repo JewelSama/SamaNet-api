@@ -28,6 +28,17 @@ const upload = (0, multer_1.default)({
     storage: storage,
     limits: { fileSize: 5000000 }
 }).single('img_path');
+//Get all Posts
+router.get('/', (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    try {
+        const posts = yield prisma.$queryRawUnsafe(`SELECT * FROM "Post" ORDER BY RANDOM() LIMIT 30`);
+        res.status(200).json(posts);
+    }
+    catch (error) {
+        console.log(error);
+        res.json(400);
+    }
+}));
 //create Post
 router.post('/', (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     // const { caption } = req.body

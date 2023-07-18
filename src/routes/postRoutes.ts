@@ -21,6 +21,17 @@ const upload =  multer({
 }).single('img_path') 
 
 
+//Get all Posts
+router.get('/', async(req, res) => {
+    try {
+        const posts = await prisma.$queryRawUnsafe(`SELECT * FROM "Post" ORDER BY RANDOM()`)
+        res.status(200).json(posts)
+    } catch (error) {
+        console.log(error)
+        res.json(400)
+    }
+})
+
 
 //create Post
 router.post('/', async(req, res) => {
