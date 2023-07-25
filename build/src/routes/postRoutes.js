@@ -31,7 +31,7 @@ const upload = (0, multer_1.default)({
 //Get all Posts
 router.get('/', (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
-        const posts = yield prisma.$queryRawUnsafe(`SELECT * FROM "Post" ORDER BY RANDOM() LIMIT 30`);
+        const posts = yield prisma.$queryRawUnsafe(`SELECT p.*, u.username, u.display_pic FROM "Post" p JOIN "USER" u ON p.userId = u.id ORDER BY RANDOM()`);
         res.status(200).json(posts);
     }
     catch (error) {

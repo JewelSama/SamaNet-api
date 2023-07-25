@@ -24,7 +24,8 @@ const upload =  multer({
 //Get all Posts
 router.get('/', async(req, res) => {
     try {
-        const posts = await prisma.$queryRawUnsafe(`SELECT * FROM "Post" ORDER BY RANDOM()`)
+        const posts = await prisma.$queryRawUnsafe(`SELECT p.*, u.username, u.display_pic FROM "Post" p JOIN "USER" u ON p.userId = u.id ORDER BY RANDOM()`)
+        
         res.status(200).json(posts)
     } catch (error) {
         console.log(error)
