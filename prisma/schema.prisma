@@ -21,6 +21,7 @@ model User {
   subscribed Boolean @default(false)
   display_pic String @default("public\\uploads\\avatar3.jpg")
   profile_views Int @default(0)
+  gender String?
   phone_number String?
   display_phone_num Boolean @default(false)
   authToken String?
